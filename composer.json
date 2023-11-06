@@ -1,0 +1,33 @@
+{
+    "name": "gtlogistics/quickbase-client",
+    "type": "library",
+    "license": "UNLICENSED",
+    "autoload": {
+        "psr-4": {
+            "Gtlogistics\\QuickbaseClient\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Gtlogistics\\QuickbaseClient\\Test\\": "test/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Brandon Antonio Lorenzo",
+            "email": "bantonio@gtglobal.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.4",
+        "symfony/polyfill-php80": "^1.28",
+        "symfony/polyfill-php81": "^1.28",
+        "ext-json": "*",
+        "psr/http-client": "^1.0",
+        "psr/http-factory": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    }
+}
