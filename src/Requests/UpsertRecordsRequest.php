@@ -5,42 +5,59 @@
 
 namespace Gtlogistics\QuickbaseClient\Requests;
 
+use Webmozart\Assert\Assert;
+
 final class UpsertRecordsRequest implements \JsonSerializable
 {
+    /**
+     * @var array{
+     *     to: non-empty-string,
+     *     data?: non-empty-list<array<positive-int, array{value: mixed}>>,
+     *     mergeFieldId?: positive-int,
+     *     fieldsToReturn?: positive-int[],
+     * }
+     */
     private array $data;
 
+    /**
+     * @param non-empty-string $table
+     */
     public function __construct(string $table)
     {
+        Assert::stringNotEmpty($table);
+
         $this->data = [
             'to' => $table,
         ];
     }
 
+    /**
+     * @param non-empty-string $table
+     */
     public function withTo(string $table): self
     {
+        Assert::stringNotEmpty($table);
+
         $clone = clone $this;
         $clone->data['to'] = $table;
 
         return $clone;
     }
 
+    /**
+     * @param non-empty-list<array<positive-int, array{value: mixed}>> $data
+     */
     public function withData(array $data): self
     {
+        Assert::isList($data);
         foreach ($data as $record) {
-            if (array_is_list($record)) {
-                throw new \InvalidArgumentException('Data records must not be an array');
-            }
+            Assert::isMap($record);
 
             foreach ($record as $fieldId => $value) {
-                if (!is_numeric($fieldId)) {
-                    throw new \InvalidArgumentException(sprintf('Data key must be an ID, %s given', $fieldId));
-                }
-                if ($fieldId <= 0) {
-                    throw new \InvalidArgumentException(sprintf('Data key must be a positive integer, %d given', $fieldId));
-                }
-                if (!is_array($value) || !array_key_exists('value', $value)) {
-                    throw new \InvalidArgumentException(sprintf('Data value must be an array with the key "value", %s given', $value));
-                }
+                Assert::positiveInteger($fieldId);
+
+                Assert::isMap($value);
+                Assert::keyExists($value, 'value');
             }
         }
 
@@ -50,11 +67,12 @@ final class UpsertRecordsRequest implements \JsonSerializable
         return $clone;
     }
 
+    /**
+     * @param positive-int $fieldId
+     */
     public function withMergeFieldId(int $fieldId): self
     {
-        if ($fieldId <= 0) {
-            throw new \InvalidArgumentException('Merge field id must be a positive integer, %d given', $fieldId);
-        }
+        Assert::positiveInteger($fieldId);
 
         $clone = clone $this;
         $clone->data['mergeFieldId'] = $fieldId;
@@ -62,15 +80,14 @@ final class UpsertRecordsRequest implements \JsonSerializable
         return $this;
     }
 
+    /**
+     * @param positive-int[] $fields
+     */
     public function withFieldsToReturn(array $fields): self
     {
+        Assert::isList($fields);
         foreach ($fields as $fieldId) {
-            if (!is_numeric($fieldId)) {
-                throw new \InvalidArgumentException(sprintf('Fields to return must be an array of integers, %s given', $fieldId));
-            }
-            if ($fieldId <= 0) {
-                throw new \InvalidArgumentException(sprintf('Fields to return must be an array of positive integer, %d given', $fieldId));
-            }
+            Assert::positiveInteger($fieldId);
         }
 
         $clone = clone $this;
@@ -79,7 +96,8 @@ final class UpsertRecordsRequest implements \JsonSerializable
         return $this;
     }
 
-    public function jsonSerialize(): array
+    #[\ReturnTypeWillChange]
+    public function jsonSerialize()
     {
         return $this->data;
     }

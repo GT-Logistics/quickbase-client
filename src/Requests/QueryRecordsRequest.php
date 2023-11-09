@@ -6,23 +6,51 @@
 namespace Gtlogistics\QuickbaseClient\Requests;
 
 use Gtlogistics\QuickbaseClient\Query;
+use Webmozart\Assert\Assert;
 
 final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSerializable
 {
     /**
-     * @var mixed[]
+     * @var array{
+     *     from: non-empty-string,
+     *     select?: positive-int[],
+     *     where?: non-empty-string,
+     *     sortBy?: array{
+     *         fieldId: positive-int,
+     *         order: 'ASC'|'DESC',
+     *     }[],
+     *     groupBy?: array{
+     *         fieldId: positive-int,
+     *         grouping: 'equal-values',
+     *     }[],
+     *     options?: array{
+     *         skip?: non-negative-int,
+     *         top?: non-negative-int,
+     *         compareWithAppLocalTime?: boolean,
+     *     },
+     * }
      */
     private array $data;
 
+    /**
+     * @param non-empty-string $from
+     */
     public function __construct(string $from)
     {
+        Assert::stringNotEmpty($from);
+
         $this->data = [
             'from' => $from,
         ];
     }
 
+    /**
+     * @param non-empty-string $table
+     */
     public function withFrom(string $table): self
     {
+        Assert::stringNotEmpty($table);
+
         $clone = clone $this;
         $clone->data['from'] = $table;
 
@@ -30,14 +58,13 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
     }
 
     /**
-     * @param int[] $fields
+     * @param positive-int[] $fields
      */
     public function withSelect(array $fields): self
     {
-        foreach ($fields as $field) {
-            if (!is_int($field)) {
-                throw new \RuntimeException(sprintf('Select can only accept integer values, %s given', $field));
-            }
+        Assert::isList($fields);
+        foreach ($fields as $fieldId) {
+            Assert::positiveInteger($fieldId);
         }
 
         $clone = clone $this;
@@ -47,33 +74,37 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
     }
 
     /**
-     * @param string|Query $where
+     * @param non-empty-string|Query $where
      */
     public function withWhere($where): self
     {
+        Assert::stringNotEmpty($where);
+
         $clone = clone $this;
         $clone->data['where'] = (string) $where;
-
-        (new Query())->contains(1, 'true');
 
         return $clone;
     }
 
     /**
-     * @param array{fieldId: string, order: string}[] $fields
+     * @param array{
+     *     fieldId: positive-int,
+     *     order: 'ASC'|'DESC',
+     * }[] $fields
      */
     public function withSortBy(array $fields): self
     {
+        Assert::isList($fields);
         foreach ($fields as $field) {
-            $fieldId = $field['fieldId'] ?? '';
-            $order = $field['order'] ?? '';
+            Assert::isMap($field);
+            Assert::keyExists($field, 'fieldId');
+            Assert::keyExists($field, 'order');
 
-            if (!is_int($fieldId)) {
-                throw new \RuntimeException(sprintf('SortBy fieldId can only accept integer values, %s given', $fieldId));
-            }
-            if (!in_array($order, ['ASC', 'DESC'])) {
-                throw new \RuntimeException(sprintf('SortBy order only accept "ASC", "DESC", %s given', $order));
-            }
+            $fieldId = $field['fieldId'];
+            $order = $field['order'];
+
+            Assert::positiveInteger($fieldId);
+            Assert::inArray($order, ['ASC', 'DESC']);
         }
 
         $clone = clone $this;
@@ -82,8 +113,13 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
         return $clone;
     }
 
+    /**
+     * @param non-negative-int $count
+     */
     public function withSkip(int $count): self
     {
+        Assert::natural($count);
+
         $clone = clone $this;
         $clone->data['options'] ??= [];
         $clone->data['options']['skip'] = $count;
@@ -91,8 +127,13 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
         return $clone;
     }
 
+    /**
+     * @param non-negative-int $count
+     */
     public function withTop(int $count): self
     {
+        Assert::natural($count);
+
         $clone = clone $this;
         $clone->data['options'] ??= [];
         $clone->data['options']['top'] = $count;
@@ -100,7 +141,8 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
         return $clone;
     }
 
-    public function jsonSerialize(): array
+    #[\ReturnTypeWillChange]
+    public function jsonSerialize()
     {
         return $this->data;
     }

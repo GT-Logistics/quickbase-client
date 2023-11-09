@@ -69,8 +69,14 @@ final class Query
         'greaterOrEquals' => 'GTE',
     ];
 
+    /**
+     * @var array{fieldId: int, operator: string, value: string, boolean: string}[]
+     */
     private array $conditions = [];
 
+    /**
+     * @return array<string, string>
+     */
     private function getOperators(): array
     {
         $operators = array_merge(self::COMPARISON_OPERATORS, self::RANGE_OPERATORS);
@@ -82,6 +88,9 @@ final class Query
         return $operators;
     }
 
+    /**
+     * @param mixed[] $arguments
+     */
     public function __call(string $name, array $arguments): self
     {
         $boolean = $arguments[2] ?? 'AND';
@@ -89,14 +98,14 @@ final class Query
             $boolean = 'OR';
             $name = lcfirst(str_replace('or', '', $name));
         }
-        if (!in_array($boolean, ['AND', 'OR'])) {
+        if (!in_array($boolean, ['AND', 'OR'], true)) {
             throw new \InvalidArgumentException();
         }
 
         $operators = $this->getOperators();
         $operator = $operators[$name] ?? null;
         if ($operator === null) {
-            throw new \RuntimeException();
+            throw new \InvalidArgumentException();
         }
 
         $fieldId = $arguments[0] ?? null;
