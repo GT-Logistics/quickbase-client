@@ -7,7 +7,7 @@ namespace Gtlogistics\QuickbaseClient\Requests;
 
 use Gtlogistics\QuickbaseClient\Query;
 
-final class QueryRequest implements PaginableRequestInterface, \JsonSerializable
+final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSerializable
 {
     /**
      * @var mixed[]

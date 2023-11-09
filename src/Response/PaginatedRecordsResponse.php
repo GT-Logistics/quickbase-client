@@ -5,9 +5,10 @@
 
 namespace Gtlogistics\QuickbaseClient\Response;
 
-use Psr\Http\Message\ResponseInterface;
-
-final class PaginatedResponse
+/**
+ * @internal
+ */
+final class PaginatedRecordsResponse extends RecordsResponse
 {
     /**
      * @var array{
@@ -21,20 +22,7 @@ final class PaginatedResponse
      *     },
      * }
      */
-    private $data;
-
-    public function __construct(ResponseInterface $response)
-    {
-        $this->data = json_decode((string) $response->getBody(), true);
-    }
-
-    /**
-     * @return array<string, array{value: mixed}>[]
-     */
-    public function getData(): array
-    {
-        return $this->data['data'];
-    }
+    protected array $data;
 
     /**
      * @return array{id: int, label: string, type: string}[]

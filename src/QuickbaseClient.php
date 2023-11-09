@@ -6,8 +6,10 @@
 namespace Gtlogistics\QuickbaseClient;
 
 use Gtlogistics\QuickbaseClient\Requests\PaginableRequestInterface;
-use Gtlogistics\QuickbaseClient\Requests\QueryRequest;
-use Gtlogistics\QuickbaseClient\Response\PaginatedResponse;
+use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
+use Gtlogistics\QuickbaseClient\Requests\UpsertRecordsRequest;
+use Gtlogistics\QuickbaseClient\Response\PaginatedRecordsResponse;
+use Gtlogistics\QuickbaseClient\Response\RecordsResponse;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -40,13 +42,23 @@ final class QuickbaseClient
     }
 
     /**
-     * @return iterable<array<string, array{value: mixed}>>
+     * @api
      */
-    public function queryRecords(QueryRequest $request): iterable
+    public function upsertRecords(UpsertRecordsRequest $request): iterable
+    {
+        $httpRequest = $this->makeRequest('POST', '/v1/records');
+
+        return $this->recordsResponse($httpRequest, $request);
+    }
+
+    /**
+     * @api
+     */
+    public function queryRecords(QueryRecordsRequest $request): iterable
     {
         $httpRequest = $this->makeRequest('POST', '/v1/records/query');
 
-        return $this->paginatedResponse($httpRequest, $request);
+        return $this->paginatedRecordsResponse($httpRequest, $request);
     }
 
     private function makeRequest(string $method, string $uri): RequestInterface
@@ -58,16 +70,23 @@ final class QuickbaseClient
             ->withHeader('Authorization', "QB-USER-TOKEN $this->token");
     }
 
-    /**
-     * @return iterable<array<string, array{value: mixed}>>
-     */
-    private function paginatedResponse(RequestInterface $httpRequest, PaginableRequestInterface $request): iterable
+    private function recordsResponse(RequestInterface $httpRequest, \JsonSerializable $request): iterable
+    {
+        $httpRequest = $httpRequest->withBody($this->streamFactory->createStream(json_encode($request)));
+
+        $httpResponse = $this->client->sendRequest($httpRequest);
+        $response = new RecordsResponse($httpResponse);
+
+        return $response->getData();
+    }
+
+    private function paginatedRecordsResponse(RequestInterface $httpRequest, PaginableRequestInterface $request): iterable
     {
         while (true) {
             $httpRequest = $httpRequest->withBody($this->streamFactory->createStream(json_encode($request)));
 
             $httpResponse = $this->client->sendRequest($httpRequest);
-            $response = new PaginatedResponse($httpResponse);
+            $response = new PaginatedRecordsResponse($httpResponse);
 
             foreach ($response->getData() as $record) {
                 yield $record;

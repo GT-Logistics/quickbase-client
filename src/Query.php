@@ -69,7 +69,7 @@ final class Query
         'greaterOrEquals' => 'GTE',
     ];
 
-    private $conditions = [];
+    private array $conditions = [];
 
     private function getOperators(): array
     {
@@ -82,9 +82,6 @@ final class Query
         return $operators;
     }
 
-    /**
-     * @return mixed
-     */
     public function __call(string $name, array $arguments): self
     {
         $boolean = $arguments[2] ?? 'AND';
