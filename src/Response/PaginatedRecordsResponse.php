@@ -12,46 +12,61 @@ final class PaginatedRecordsResponse extends RecordsResponse
 {
     /**
      * @var array{
-     *     data: array<string, array{value: mixed}>[],
-     *     fields: array{id: int, label: string, type: string}[],
+     *     data: array<positive-int, array{value: mixed}>[],
+     *     fields: array{id: positive-int, label: non-empty-string, type: non-empty-string}[],
      *     metadata: array{
-     *         totalRecords: int,
-     *         numRecords: int,
-     *         numFields: int,
-     *         skip: int,
+     *         totalRecords: non-negative-int,
+     *         numRecords: non-negative-int,
+     *         numFields: non-negative-int,
+     *         skip: non-negative-int,
      *     },
      * }
      */
     protected array $data;
 
     /**
-     * @return array{id: int, label: string, type: string}[]
+     * @return array{id: positive-int, label: non-empty-string, type: non-empty-string}[]
      */
     public function getFields(): array
     {
         return $this->data['fields'];
     }
 
+    /**
+     * @return non-negative-int
+     */
     public function getTotalRecords(): int
     {
         return $this->data['metadata']['totalRecords'];
     }
 
+    /**
+     * @return non-negative-int
+     */
     public function getNumRecords(): int
     {
         return $this->data['metadata']['numRecords'];
     }
 
+    /**
+     * @return non-negative-int
+     */
     public function getNumFields(): int
     {
         return $this->data['metadata']['numFields'];
     }
 
+    /**
+     * @return non-negative-int
+     */
     public function getSkip(): int
     {
         return $this->data['metadata']['skip'];
     }
 
+    /**
+     * @return non-negative-int
+     */
     public function getNext(): int
     {
         return $this->getSkip() + $this->getNumRecords();

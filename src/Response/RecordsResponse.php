@@ -14,18 +14,18 @@ class RecordsResponse
 {
     /**
      * @var array{
-     *     data: array<string, array{value: mixed}>[],
+     *     data: array<positive-int, array{value: mixed}>[],
      * }
      */
     protected array $data;
 
     public function __construct(ResponseInterface $response)
     {
-        $this->data = json_decode((string) $response->getBody(), true);
+        $this->data = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
     }
 
     /**
-     * @return array<string, array{value: mixed}>[]
+     * @return array<positive-int, array{value: mixed}>[]
      */
     public function getData(): array
     {

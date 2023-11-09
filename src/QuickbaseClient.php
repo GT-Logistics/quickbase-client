@@ -14,6 +14,7 @@ use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use function Safe\json_encode;
 
 final class QuickbaseClient
 {
@@ -43,6 +44,8 @@ final class QuickbaseClient
 
     /**
      * @api
+     *
+     * @return iterable<positive-int, array{value: mixed}>[]
      */
     public function upsertRecords(UpsertRecordsRequest $request): iterable
     {
@@ -53,6 +56,8 @@ final class QuickbaseClient
 
     /**
      * @api
+     *
+     * @return iterable<positive-int, array{value: mixed}>[]
      */
     public function queryRecords(QueryRecordsRequest $request): iterable
     {
@@ -70,6 +75,9 @@ final class QuickbaseClient
             ->withHeader('Authorization', "QB-USER-TOKEN $this->token");
     }
 
+    /**
+     * @return iterable<positive-int, array{value: mixed}>[]
+     */
     private function recordsResponse(RequestInterface $httpRequest, \JsonSerializable $request): iterable
     {
         $httpRequest = $httpRequest->withBody($this->streamFactory->createStream(json_encode($request)));
@@ -80,6 +88,9 @@ final class QuickbaseClient
         return $response->getData();
     }
 
+    /**
+     * @return iterable<positive-int, array{value: mixed}>[]
+     */
     private function paginatedRecordsResponse(RequestInterface $httpRequest, PaginableRequestInterface $request): iterable
     {
         while (true) {
