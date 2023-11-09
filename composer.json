@@ -1,7 +1,7 @@
 {
     "name": "gtlogistics/quickbase-client",
     "type": "library",
-    "license": "UNLICENSED",
+    "license": "proprietary",
     "autoload": {
         "psr-4": {
             "Gtlogistics\\QuickbaseClient\\": "src/"
