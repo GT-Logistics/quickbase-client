@@ -49,20 +49,24 @@ final class UpsertRecordsRequest implements \JsonSerializable
      */
     public function withData(array $data): self
     {
+        /** @var non-empty-list<array<positive-int, array{value: mixed}>> $normalizedData */
+        $normalizedData = [];
+
         Assert::isList($data);
         foreach ($data as $record) {
-            Assert::isMap($record);
+            Assert::isArray($record);
 
+            $normalizedRecord = [];
             foreach ($record as $fieldId => $value) {
                 Assert::positiveInteger($fieldId);
 
-                $record[$fieldId] = ['value' => $value];
+                $normalizedRecord[$fieldId] = ['value' => $value];
             }
+            $normalizedData[] = $normalizedRecord;
         }
 
         $clone = clone $this;
-        /** @var non-empty-list<array<positive-int, array{value: mixed}>> $data */
-        $clone->data['data'] = $data;
+        $clone->data['data'] = $normalizedData;
 
         return $clone;
     }
