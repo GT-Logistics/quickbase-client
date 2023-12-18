@@ -12,7 +12,7 @@ final class QueryTest extends TestCase
 {
     public function testWrongOperator(): void
     {
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(\InvalidArgumentException::class);
 
         $query = new Query();
         $query->notError(1, 'test');
