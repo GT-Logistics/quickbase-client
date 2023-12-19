@@ -7,6 +7,7 @@ namespace Gtlogistics\QuickbaseClient\Requests;
 
 use Gtlogistics\QuickbaseClient\Query;
 use Webmozart\Assert\Assert;
+use function _PHPStan_39fe102d2\RingCentral\Psr7\str;
 
 final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSerializable
 {
@@ -78,10 +79,14 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
      */
     public function withWhere($where): self
     {
+        if ($where instanceof Query) {
+            $where = (string) $where;
+        }
+
         Assert::stringNotEmpty($where);
 
         $clone = clone $this;
-        $clone->data['where'] = (string) $where;
+        $clone->data['where'] = $where;
 
         return $clone;
     }
