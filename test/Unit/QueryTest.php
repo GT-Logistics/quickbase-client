@@ -48,6 +48,20 @@ final class QueryTest extends TestCase
         $this->assertSame($expected, (string) $query);
     }
 
+    /**
+     * @testWith ["{'1'.EX.'2'}", 2]
+     *           ["{'1'.EX.'2.5'}", 2.5]
+     *           ["{'1'.EX.'0'}", false]
+     *           ["{'1'.EX.''}", null]
+     */
+    public function testScalarValue(string $expected, $value): void
+    {
+        $query = new Query();
+        $query = $query->equals(1, $value);
+
+        $this->assertSame($expected, (string) $query);
+    }
+
     public function testWrongFieldId(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -60,8 +74,9 @@ final class QueryTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
+        $object = new \stdClass();
         $query = new Query();
-        $query->contains(1, null);
+        $query->contains(1, $object);
     }
 
     public function testWrongBoolean(): void
