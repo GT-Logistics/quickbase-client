@@ -14,7 +14,7 @@ final class RequestUtils
     public static function withPayload(RequestInterface $request, StreamFactoryInterface $streamFactory, \JsonSerializable $payload = null): RequestInterface
     {
         if ($payload) {
-            return $request->withBody($streamFactory->createStream(json_encode($request)));
+            return $request->withBody($streamFactory->createStream(json_encode($payload)));
         }
 
         return $request->withBody($streamFactory->createStream());
