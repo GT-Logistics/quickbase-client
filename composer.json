@@ -37,7 +37,9 @@
         "phpstan/phpstan-webmozart-assert": "^1.2",
         "thecodingmachine/phpstan-safe-rule": "^1.2",
         "illuminate/support": "^5.8|^10.0",
-        "mockery/mockery": "^1.4"
+        "mockery/mockery": "^1.4",
+        "nyholm/psr7": "^1.8",
+        "symfony/http-client": "^5.4"
     },
     "extra": {
         "laravel": {
