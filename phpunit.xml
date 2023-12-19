@@ -29,6 +29,7 @@
   </testsuites>
   <php>
     <env name="QUICKBASE_TOKEN" value="test"/>
+    <env name="QUICKBASE_REALM" value="https://example.net" />
     <env name="QUICKBASE_BASE_URI" value="https://example.com"/>
   </php>
 </phpunit>

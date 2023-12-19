@@ -3,7 +3,7 @@
  * Copyright (c) 2023 GT Logistics.
  */
 
-namespace Gtlogistics\QuickbaseClient\Response;
+namespace Gtlogistics\QuickbaseClient\Responses;
 
 /**
  * @internal

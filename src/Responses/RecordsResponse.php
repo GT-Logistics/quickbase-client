@@ -3,14 +3,14 @@
  * Copyright (c) 2023 GT Logistics.
  */
 
-namespace Gtlogistics\QuickbaseClient\Response;
+namespace Gtlogistics\QuickbaseClient\Responses;
 
-use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ResponseInterface as HttpResponseInterface;
 
 /**
  * @internal
  */
-class RecordsResponse
+class RecordsResponse implements \Gtlogistics\QuickbaseClient\Responses\ResponseInterface
 {
     /**
      * @var array{
@@ -19,7 +19,7 @@ class RecordsResponse
      */
     protected array $data;
 
-    public function __construct(ResponseInterface $response)
+    public function __construct(HttpResponseInterface $response)
     {
         $this->data = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
     }

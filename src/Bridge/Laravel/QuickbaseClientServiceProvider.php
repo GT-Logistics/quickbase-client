@@ -11,6 +11,7 @@ use Illuminate\Support\ServiceProvider;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
 
 class QuickbaseClientServiceProvider extends ServiceProvider
 {
@@ -38,8 +39,10 @@ class QuickbaseClientServiceProvider extends ServiceProvider
             return new QuickbaseClient(
                 $app->get(ClientInterface::class),
                 $app->get(RequestFactoryInterface::class),
+                $app->get(UriFactoryInterface::class),
                 $app->get(StreamFactoryInterface::class),
                 config('quickbase.token'),
+                config('quickbase.realm'),
                 config('quickbase.base_uri'),
             );
         });

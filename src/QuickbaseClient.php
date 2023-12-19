@@ -5,16 +5,25 @@
 
 namespace Gtlogistics\QuickbaseClient;
 
+use Gtlogistics\QuickbaseClient\Authentication\UserTokenAuthentication;
+use Gtlogistics\QuickbaseClient\Exceptions\MultipleRecordsFoundException;
+use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\PaginableRequestInterface;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\UpsertRecordsRequest;
-use Gtlogistics\QuickbaseClient\Response\PaginatedRecordsResponse;
-use Gtlogistics\QuickbaseClient\Response\RecordsResponse;
+use Gtlogistics\QuickbaseClient\Responses\PaginatedRecordsResponse;
+use Gtlogistics\QuickbaseClient\Responses\RecordsResponse;
+use Gtlogistics\QuickbaseClient\Responses\ResponseInterface;
+use Gtlogistics\QuickbaseClient\Utils\RequestUtils;
+use Http\Client\Common\Plugin\AuthenticationPlugin;
+use Http\Client\Common\Plugin\BaseUriPlugin;
+use Http\Client\Common\Plugin\HeaderSetPlugin;
+use Http\Client\Common\PluginClient;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use function Safe\json_encode;
+use Psr\Http\Message\UriFactoryInterface;
 
 final class QuickbaseClient
 {
@@ -24,80 +33,118 @@ final class QuickbaseClient
 
     private StreamFactoryInterface $streamFactory;
 
-    private string $baseUri;
-
-    private string $token;
-
     public function __construct(
         ClientInterface $client,
         RequestFactoryInterface $requestFactory,
+        UriFactoryInterface $uriFactory,
         StreamFactoryInterface $streamFactory,
         string $token,
+        string $realm,
         string $baseUri = 'https://api.quickbase.com'
     ) {
-        $this->client = $client;
+        $this->client = new PluginClient(
+            $client,
+            [
+                new BaseUriPlugin($uriFactory->createUri($baseUri)),
+                new HeaderSetPlugin(['QB-Realm-Hostname' => $realm]),
+                new AuthenticationPlugin(new UserTokenAuthentication($token)),
+            ],
+        );
         $this->requestFactory = $requestFactory;
         $this->streamFactory = $streamFactory;
-        $this->baseUri = $baseUri;
-        $this->token = $token;
     }
 
     /**
      * @api
      *
-     * @return iterable<positive-int, array{value: mixed}>[]
+     * @return iterable<array<positive-int, array{value: mixed}>>
      */
     public function upsertRecords(UpsertRecordsRequest $request): iterable
     {
-        $httpRequest = $this->makeRequest('POST', '/v1/records');
+        $httpRequest = $this->makeRequest('POST', '/v1/records', $request);
 
-        return $this->recordsResponse($httpRequest, $request);
+        return $this->recordsResponse($httpRequest);
     }
 
     /**
      * @api
      *
-     * @return iterable<positive-int, array{value: mixed}>[]
+     * @return iterable<array<positive-int, array{value: mixed}>>
      */
     public function queryRecords(QueryRecordsRequest $request): iterable
     {
-        $httpRequest = $this->makeRequest('POST', '/v1/records/query');
+        $httpRequest = $this->makeRequest('POST', '/v1/records/query', $request);
 
         return $this->paginatedRecordsResponse($httpRequest, $request);
     }
 
-    private function makeRequest(string $method, string $uri): RequestInterface
+    /**
+     * @api
+     *
+     * @return array<positive-int, array{value: mixed}
+     * @throws MultipleRecordsFoundException
+     */
+    public function findRecord(FindRecordRequest $request): iterable
     {
-        $request = $this->requestFactory->createRequest($method, $this->baseUri . $uri);
+        $httpRequest = $this->makeRequest('POST', '/v1/records/query', $request);
 
-        return $request
-            ->withHeader('QB-Realm-Hostname', 'https://gtglobal.quickbase.com')
-            ->withHeader('Authorization', "QB-USER-TOKEN $this->token");
+        return $this->recordResponse($httpRequest);
+    }
+
+    private function makeRequest(string $method, string $uri, \JsonSerializable $payload = null): HttpRequestInterface
+    {
+        $request = $this->requestFactory->createRequest($method, $uri);
+
+        return RequestUtils::withPayload($request, $this->streamFactory, $payload);
     }
 
     /**
-     * @return iterable<positive-int, array{value: mixed}>[]
+     * @template T of ResponseInterface
+     * @param class-string<T> $responseClass
+     *
+     * @return T
      */
-    private function recordsResponse(RequestInterface $httpRequest, \JsonSerializable $request): iterable
+    private function doRequest(HttpRequestInterface $request, string $responseClass): ResponseInterface
     {
-        $httpRequest = $httpRequest->withBody($this->streamFactory->createStream(json_encode($request)));
+        $httpResponse = $this->client->sendRequest($request);
 
-        $httpResponse = $this->client->sendRequest($httpRequest);
-        $response = new RecordsResponse($httpResponse);
-
-        return $response->getData();
+        return new $responseClass($httpResponse);
     }
 
     /**
-     * @return iterable<positive-int, array{value: mixed}>[]
+     * @return iterable<array<positive-int, array{value: mixed}>>
      */
-    private function paginatedRecordsResponse(RequestInterface $httpRequest, PaginableRequestInterface $request): iterable
+    private function recordsResponse(HttpRequestInterface $httpRequest): iterable
+    {
+        return $this->doRequest($httpRequest, RecordsResponse::class)->getData();
+    }
+
+    /**
+     * @return array<positive-int, array{value: mixed}>
+     * @throws MultipleRecordsFoundException
+     */
+    private function recordResponse(HttpRequestInterface $httpRequest): ?array
+    {
+        $response = $this->doRequest($httpRequest, PaginatedRecordsResponse::class);
+
+        if ($response->getNumRecords() > 1) {
+            throw new MultipleRecordsFoundException('The query return more that one record');
+        }
+
+        foreach ($response->getData() as $record) {
+            return $record;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return iterable<array<positive-int, array{value: mixed}>>
+     */
+    private function paginatedRecordsResponse(HttpRequestInterface $httpRequest, PaginableRequestInterface $request): iterable
     {
         while (true) {
-            $httpRequest = $httpRequest->withBody($this->streamFactory->createStream(json_encode($request)));
-
-            $httpResponse = $this->client->sendRequest($httpRequest);
-            $response = new PaginatedRecordsResponse($httpResponse);
+            $response = $this->doRequest($httpRequest, PaginatedRecordsResponse::class);
 
             foreach ($response->getData() as $record) {
                 yield $record;
@@ -107,7 +154,7 @@ final class QuickbaseClient
                 break;
             }
 
-            $request = $request->withSkip($response->getNext());
+            $httpRequest = RequestUtils::withPayload($httpRequest, $this->streamFactory, $request->withSkip($response->getNext()));
         }
     }
 }

@@ -7,21 +7,21 @@ namespace Gtlogistics\QuickbaseClient\Test\Feature\Bridge\Laravel;
 
 use Gtlogistics\QuickbaseClient\Bridge\Laravel\QuickbaseClientServiceProvider;
 use Gtlogistics\QuickbaseClient\QuickbaseClient;
-use Illuminate\Contracts\Config\Repository;
-use Illuminate\Contracts\Foundation\Application;
 use Orchestra\Testbench\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Http\Message\UriFactoryInterface;
 
 class QuickbaseClientServiceProviderTest extends TestCase
 {
     protected function setUp(): void
     {
         $this->afterApplicationCreated(function () {
-            $this->app->instance(ClientInterface::class, $this->mock(ClientInterface::class));
-            $this->app->instance(RequestFactoryInterface::class, $this->mock(RequestFactoryInterface::class));
-            $this->app->instance(StreamFactoryInterface::class, $this->mock(StreamFactoryInterface::class));
+            $this->mock(ClientInterface::class);
+            $this->mock(RequestFactoryInterface::class);
+            $this->mock(UriFactoryInterface::class);
+            $this->mock(StreamFactoryInterface::class);
         });
 
         parent::setUp();
@@ -37,6 +37,7 @@ class QuickbaseClientServiceProviderTest extends TestCase
     public function testRegister(): void
     {
         self::assertEquals('test', config('quickbase.token'));
+        self::assertEquals('https://example.net', config('quickbase.realm'));
         self::assertEquals('https://example.com', config('quickbase.base_uri'));
 
         $quickbaseClient = $this->app->make(QuickbaseClient::class);
