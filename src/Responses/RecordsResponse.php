@@ -5,12 +5,10 @@
 
 namespace Gtlogistics\QuickbaseClient\Responses;
 
-use Psr\Http\Message\ResponseInterface as HttpResponseInterface;
-
 /**
  * @internal
  */
-class RecordsResponse implements \Gtlogistics\QuickbaseClient\Responses\ResponseInterface
+class RecordsResponse extends AbstractResponse
 {
     /**
      * @var array{
@@ -18,11 +16,6 @@ class RecordsResponse implements \Gtlogistics\QuickbaseClient\Responses\Response
      * }
      */
     protected array $data;
-
-    public function __construct(HttpResponseInterface $response)
-    {
-        $this->data = json_decode((string) $response->getBody(), true, 512, JSON_THROW_ON_ERROR);
-    }
 
     /**
      * @return array<positive-int, array{value: mixed}>[]

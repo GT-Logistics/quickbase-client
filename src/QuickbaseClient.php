@@ -7,6 +7,7 @@ namespace Gtlogistics\QuickbaseClient;
 
 use Gtlogistics\QuickbaseClient\Authentication\UserTokenAuthentication;
 use Gtlogistics\QuickbaseClient\Exceptions\MultipleRecordsFoundException;
+use Gtlogistics\QuickbaseClient\Exceptions\QuickbaseException;
 use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\PaginableRequestInterface;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
@@ -104,11 +105,14 @@ final class QuickbaseClient
      *
      * @return T
      */
-    private function doRequest(HttpRequestInterface $request, string $responseClass): ResponseInterface
+    private function doRequest(HttpRequestInterface $httpRequest, string $responseClass): ResponseInterface
     {
-        $httpResponse = $this->client->sendRequest($request);
+        $httpResponse = $this->client->sendRequest($httpRequest);
+        if ($httpResponse->getStatusCode() >= 400 && $httpResponse->getStatusCode() <= 599) {
+            throw QuickbaseException::fromResponse($httpResponse);
+        }
 
-        return new $responseClass($httpResponse);
+        return $responseClass::fromResponse($httpResponse);
     }
 
     /**
@@ -121,13 +125,14 @@ final class QuickbaseClient
 
     /**
      * @return array<positive-int, array{value: mixed}>
+     *
      * @throws MultipleRecordsFoundException
      */
     private function recordResponse(HttpRequestInterface $httpRequest): ?array
     {
         $response = $this->doRequest($httpRequest, PaginatedRecordsResponse::class);
 
-        if ($response->getNumRecords() > 1) {
+        if ($response->getTotalRecords() > 1) {
             throw new MultipleRecordsFoundException('The query return more that one record');
         }
 

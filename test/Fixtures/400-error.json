@@ -1,0 +1,4 @@
+{
+  "message": "Bad request",
+  "description": "Required header 'QB-Realm-Hostname' not specified"
+}

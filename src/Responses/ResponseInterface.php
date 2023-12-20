@@ -9,5 +9,5 @@ use Psr\Http\Message\ResponseInterface as HttpResponseInterface;
 
 interface ResponseInterface
 {
-    public function __construct(HttpResponseInterface $request);
+    public static function fromResponse(HttpResponseInterface $response);
 }
