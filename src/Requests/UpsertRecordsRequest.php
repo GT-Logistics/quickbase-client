@@ -81,7 +81,7 @@ final class UpsertRecordsRequest implements \JsonSerializable
         $clone = clone $this;
         $clone->data['mergeFieldId'] = $fieldId;
 
-        return $this;
+        return $clone;
     }
 
     /**
@@ -97,7 +97,7 @@ final class UpsertRecordsRequest implements \JsonSerializable
         $clone = clone $this;
         $clone->data['fieldsToReturn'] = $fields;
 
-        return $this;
+        return $clone;
     }
 
     #[\ReturnTypeWillChange]
