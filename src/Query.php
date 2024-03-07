@@ -111,8 +111,8 @@ final class Query
         Assert::positiveInteger($fieldId);
 
         $value = $arguments[1] ?? null;
-        if (!is_scalar($value) && $value !== null) {
-            throw new \InvalidArgumentException(sprintf('Expected value to be string, int, float, bool or null. Given %s', get_class($value)));
+        if ($value !== null) {
+            Assert::scalar($value);
         }
 
         if (is_bool($value)) {
