@@ -15,19 +15,19 @@ final class QuickbaseUtils
 {
     /**
      * @param mixed $value
-     * @param 'text'|'numeric'|'date time'|'date'|'time' $type
+     * @param 'text'|'numeric'|'timestamp'|'date'|'timeofday' $type
      *
      * @return mixed
      */
     public static function parseField($value, string $type)
     {
-        if ($type === 'date time') {
+        if ($type === 'timestamp') {
             return new \DateTimeImmutable($value);
         }
         if ($type === 'date') {
             return new Date($value);
         }
-        if ($type === 'time') {
+        if ($type === 'timeofday') {
             return new Time($value);
         }
 

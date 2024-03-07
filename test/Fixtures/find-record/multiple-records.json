@@ -26,7 +26,7 @@
     {
       "id": 8,
       "label": "Date time",
-      "type": "date time"
+      "type": "timestamp"
     }
   ],
   "metadata": {

@@ -15,7 +15,7 @@ final class PaginatedRecordsResponse extends RecordsResponse
     /**
      * @var array{
      *     data: array<positive-int, array{value: mixed}>[],
-     *     fields: array{id: positive-int, label: non-empty-string, type: 'text'|'numeric'|'date time'|'date'|'time'}[],
+     *     fields: array{id: positive-int, label: non-empty-string, type: 'text'|'numeric'|'timestamp'|'date'|'timeofday'}[],
      *     metadata: array{
      *         totalRecords: non-negative-int,
      *         numRecords: non-negative-int,
