@@ -9,6 +9,9 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use function Safe\json_encode;
 
+/**
+ * @internal
+ */
 final class RequestUtils
 {
     public static function withPayload(RequestInterface $request, StreamFactoryInterface $streamFactory, \JsonSerializable $payload = null): RequestInterface

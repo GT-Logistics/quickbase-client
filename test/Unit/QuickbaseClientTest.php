@@ -52,19 +52,19 @@ class QuickbaseClientTest extends ApiTestCase
         $this->assertCount(3, $records);
 
         $record1 = $records[0];
-        $this->assertSame('John Doe', $record1[6]['value']);
-        $this->assertSame(10, $record1[7]['value']);
-        $this->assertSame('2019-12-18T08:00:00Z', $record1[8]['value']);
+        $this->assertSame('John Doe', $record1[6]);
+        $this->assertSame(10, $record1[7]);
+        $this->assertSame('2019-12-18T08:00:00+00:00', $record1[8]->format(\DateTimeInterface::ATOM));
 
         $record2 = $records[1];
-        $this->assertSame('Jane Doe', $record2[6]['value']);
-        $this->assertSame(5, $record2[7]['value']);
-        $this->assertSame('2019-12-18T09:00:00Z', $record2[8]['value']);
+        $this->assertSame('Jane Doe', $record2[6]);
+        $this->assertSame(5, $record2[7]);
+        $this->assertSame('2019-12-18T09:00:00+00:00', $record2[8]->format(\DateTimeInterface::ATOM));
 
         $record3 = $records[2];
-        $this->assertSame('Andre Harris', $record3[6]['value']);
-        $this->assertSame(7, $record3[7]['value']);
-        $this->assertSame('2019-12-18T10:00:00Z', $record3[8]['value']);
+        $this->assertSame('Andre Harris', $record3[6]);
+        $this->assertSame(7, $record3[7]);
+        $this->assertSame('2019-12-18T10:00:00+00:00', $record3[8]->format(\DateTimeInterface::ATOM));
     }
 
     public function testFindRecord(): void
@@ -74,9 +74,9 @@ class QuickbaseClientTest extends ApiTestCase
         ]);
 
         $record = $client->findRecord(new FindRecordRequest('abcdefghi', 100));
-        $this->assertSame('John Doe', $record[6]['value']);
-        $this->assertSame(10, $record[7]['value']);
-        $this->assertSame('2019-12-18T08:00:00Z', $record[8]['value']);
+        $this->assertSame('John Doe', $record[6]);
+        $this->assertSame(10, $record[7]);
+        $this->assertSame('2019-12-18T08:00:00+00:00', $record[8]->format(\DateTimeInterface::ATOM));
     }
 
     public function testFindRecordWithMultiple(): void

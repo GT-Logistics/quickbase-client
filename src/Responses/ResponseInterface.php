@@ -7,6 +7,9 @@ namespace Gtlogistics\QuickbaseClient\Responses;
 
 use Psr\Http\Message\ResponseInterface as HttpResponseInterface;
 
+/**
+ * @internal
+ */
 interface ResponseInterface
 {
     public static function fromResponse(HttpResponseInterface $response);

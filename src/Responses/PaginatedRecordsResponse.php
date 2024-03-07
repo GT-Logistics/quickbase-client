@@ -5,6 +5,8 @@
 
 namespace Gtlogistics\QuickbaseClient\Responses;
 
+use Gtlogistics\QuickbaseClient\Utils\QuickbaseUtils;
+
 /**
  * @internal
  */
@@ -13,7 +15,7 @@ final class PaginatedRecordsResponse extends RecordsResponse
     /**
      * @var array{
      *     data: array<positive-int, array{value: mixed}>[],
-     *     fields: array{id: positive-int, label: non-empty-string, type: non-empty-string}[],
+     *     fields: array{id: positive-int, label: non-empty-string, type: 'text'|'numeric'|'date time'|'date'|'time'}[],
      *     metadata: array{
      *         totalRecords: non-negative-int,
      *         numRecords: non-negative-int,
@@ -25,11 +27,22 @@ final class PaginatedRecordsResponse extends RecordsResponse
     protected array $data;
 
     /**
-     * @return array{id: positive-int, label: non-empty-string, type: non-empty-string}[]
+     * @return array<positive-int, mixed>[]
      */
-    public function getFields(): array
+    public function getData(): array
     {
-        return $this->data['fields'];
+        $fields = $this->data['fields'];
+
+        return array_map(static function (array $record) use ($fields) {
+            $parsedData = [];
+
+            foreach ($record as $key => $value) {
+                $field = $fields[array_search($key, array_column($fields, 'id'), true)];
+                $parsedData[$key] = QuickbaseUtils::parseField($value, $field['type']);
+            }
+
+            return $parsedData;
+        }, parent::getData());
     }
 
     /**

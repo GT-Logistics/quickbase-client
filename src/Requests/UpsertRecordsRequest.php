@@ -5,6 +5,7 @@
 
 namespace Gtlogistics\QuickbaseClient\Requests;
 
+use Gtlogistics\QuickbaseClient\Utils\QuickbaseUtils;
 use Webmozart\Assert\Assert;
 
 final class UpsertRecordsRequest implements \JsonSerializable
@@ -60,7 +61,7 @@ final class UpsertRecordsRequest implements \JsonSerializable
             foreach ($record as $fieldId => $value) {
                 Assert::positiveInteger($fieldId);
 
-                $normalizedRecord[$fieldId] = ['value' => $value];
+                $normalizedRecord[$fieldId] = ['value' => QuickbaseUtils::serializeField($value)];
             }
             $normalizedData[] = $normalizedRecord;
         }

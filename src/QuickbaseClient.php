@@ -58,7 +58,7 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return iterable<array<positive-int, array{value: mixed}>>
+     * @return iterable<array<positive-int, mixed>
      */
     public function upsertRecords(UpsertRecordsRequest $request): iterable
     {
@@ -70,7 +70,7 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return iterable<array<positive-int, array{value: mixed}>>
+     * @return iterable<array<positive-int, mixed>>
      */
     public function queryRecords(QueryRecordsRequest $request): iterable
     {
@@ -82,10 +82,10 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return array<positive-int, array{value: mixed}
+     * @return array<positive-int, mixed>
      * @throws MultipleRecordsFoundException
      */
-    public function findRecord(FindRecordRequest $request): iterable
+    public function findRecord(FindRecordRequest $request): ?iterable
     {
         $httpRequest = $this->makeRequest('POST', '/v1/records/query', $request);
 

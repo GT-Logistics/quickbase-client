@@ -18,10 +18,10 @@ class RecordsResponse extends AbstractResponse
     protected array $data;
 
     /**
-     * @return array<positive-int, array{value: mixed}>[]
+     * @return array<positive-int, mixed>[]
      */
     public function getData(): array
     {
-        return $this->data['data'];
+        return array_map(static fn ($record) => array_map(static fn (array $item) => $item['value'], $record), $this->data['data']);
     }
 }
