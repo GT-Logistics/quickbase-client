@@ -36,6 +36,20 @@ class QuickbaseClientTest extends ApiTestCase
         IterableUtils::toArray($client->queryRecords(new QueryRecordsRequest('abcdefghi')));
     }
 
+    public function testQueryEmptyRecords(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('query-records/empty.json')),
+        ]);
+
+        $records = IterableUtils::toArray($client->queryRecords(
+            (new QueryRecordsRequest('abcdefghi'))
+                ->withSelect([6, 7, 8])
+                ->withWhere((new Query())->range(8, 'today'))
+        ));
+        $this->assertCount(0, $records);
+    }
+
     public function testQueryRecords(): void
     {
         $client = $this->mockQuickbaseClient([
@@ -65,6 +79,16 @@ class QuickbaseClientTest extends ApiTestCase
         $this->assertSame('Andre Harris', $record3[6]);
         $this->assertSame(7, $record3[7]);
         $this->assertSame('2019-12-18T10:00:00+00:00', $record3[8]->format(\DateTimeInterface::ATOM));
+    }
+
+    public function testFindEmptyRecord(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('find-record/empty-record.json')),
+        ]);
+
+        $record = $client->findRecord(new FindRecordRequest('abcdefghi', 100));
+        $this->assertNull($record);
     }
 
     public function testFindRecord(): void

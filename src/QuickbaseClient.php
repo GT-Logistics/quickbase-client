@@ -82,7 +82,7 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return array<positive-int, mixed>
+     * @return array<positive-int, mixed>|null
      * @throws MultipleRecordsFoundException
      */
     public function findRecord(FindRecordRequest $request): ?iterable
