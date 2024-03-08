@@ -21,6 +21,9 @@ final class QuickbaseUtils
      */
     public static function parseField($value, string $type)
     {
+        if ($value === '' && in_array($type, ['timestamp', 'date', 'timeofday'])) {
+            return null;
+        }
         if ($type === 'timestamp') {
             return new \DateTimeImmutable($value);
         }
