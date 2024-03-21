@@ -9,6 +9,7 @@ use Gtlogistics\QuickbaseClient\Exceptions\MultipleRecordsFoundException;
 use Gtlogistics\QuickbaseClient\Exceptions\QuickbaseException;
 use Gtlogistics\QuickbaseClient\Query;
 use Gtlogistics\QuickbaseClient\QuickbaseClient;
+use Gtlogistics\QuickbaseClient\Requests\DeleteRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
 use Gtlogistics\QuickbaseClient\Test\ApiTestCase;
@@ -111,6 +112,16 @@ class QuickbaseClientTest extends ApiTestCase
 
         $this->expectException(MultipleRecordsFoundException::class);
         $client->findRecord(new FindRecordRequest('abcdefghi', 100));
+    }
+
+    public function testDeleteRecords(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('delete-records/multiple-records.json')),
+        ]);
+
+        $numberDeleted = $client->deleteRecords(new DeleteRecordsRequest('abcdefghi', (new Query())->contains(6, 'test')));
+        $this->assertEquals(5, $numberDeleted);
     }
 
     /**

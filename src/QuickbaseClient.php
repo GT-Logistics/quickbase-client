@@ -8,10 +8,12 @@ namespace Gtlogistics\QuickbaseClient;
 use Gtlogistics\QuickbaseClient\Authentication\UserTokenAuthentication;
 use Gtlogistics\QuickbaseClient\Exceptions\MultipleRecordsFoundException;
 use Gtlogistics\QuickbaseClient\Exceptions\QuickbaseException;
+use Gtlogistics\QuickbaseClient\Requests\DeleteRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\PaginableRequestInterface;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\UpsertRecordsRequest;
+use Gtlogistics\QuickbaseClient\Responses\DeletedRecordsResponse;
 use Gtlogistics\QuickbaseClient\Responses\PaginatedRecordsResponse;
 use Gtlogistics\QuickbaseClient\Responses\RecordsResponse;
 use Gtlogistics\QuickbaseClient\Responses\ResponseInterface;
@@ -90,6 +92,16 @@ final class QuickbaseClient
         $httpRequest = $this->makeRequest('POST', '/v1/records/query', $request);
 
         return $this->recordResponse($httpRequest);
+    }
+
+    /**
+     * @api
+     */
+    public function deleteRecords(DeleteRecordsRequest $request): int
+    {
+        $httpRequest = $this->makeRequest('DELETE', '/v1/records', $request);
+
+        return $this->doRequest($httpRequest, DeletedRecordsResponse::class)->getNumberDeleted();
     }
 
     private function makeRequest(string $method, string $uri, \JsonSerializable $payload = null): HttpRequestInterface
