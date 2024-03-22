@@ -12,6 +12,7 @@ use Gtlogistics\QuickbaseClient\QuickbaseClient;
 use Gtlogistics\QuickbaseClient\Requests\DeleteRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
+use Gtlogistics\QuickbaseClient\Requests\UpsertRecordsRequest;
 use Gtlogistics\QuickbaseClient\Test\ApiTestCase;
 use Gtlogistics\QuickbaseClient\Test\Utils\IterableUtils;
 use Nyholm\Psr7\Factory\Psr17Factory;
@@ -111,7 +112,56 @@ class QuickbaseClientTest extends ApiTestCase
         ]);
 
         $this->expectException(MultipleRecordsFoundException::class);
-        $client->findRecord(new FindRecordRequest('abcdefghi', 100));
+        $client->findRecord(new FindRecordRequest('abcdefghi', 100, 10));
+    }
+
+    public function testUpsertRecords(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('upsert-records/multiple-records.json')),
+        ]);
+
+        $records = IterableUtils::toArray($client->upsertRecords(
+            (new UpsertRecordsRequest('abcdefghi'))
+                ->withData([
+                    [
+                        3 => 1,
+                        6 => 'Updating this record',
+                        7 => 10,
+                        8 => new \DateTimeImmutable('2019-12-18T08:00:00Z'),
+                    ],
+                    [
+                        6 => 'This is my text',
+                        7 => 15,
+                        8 => new \DateTimeImmutable('2019-12-19T08:00:00Z'),
+                    ],
+                    [
+                        6 => 'This is my other text',
+                        7 => 20,
+                        8 => new \DateTimeImmutable('2019-12-20T08:00:00.000Z'),
+                    ],
+                ])
+                ->withFieldsToReturn([6, 7, 8])
+        ));
+        $this->assertCount(3, $records);
+
+        $record1 = $records[0];
+        $this->assertSame(1, $record1[3]);
+        $this->assertSame('Updating this record', $record1[6]);
+        $this->assertSame(10, $record1[7]);
+        $this->assertSame('2019-12-18T08:00:00.000Z', $record1[8]);
+
+        $record2 = $records[1];
+        $this->assertSame(11, $record2[3]);
+        $this->assertSame('This is my text', $record2[6]);
+        $this->assertSame(15, $record2[7]);
+        $this->assertSame('2019-12-19T08:00:00.000Z', $record2[8]);
+
+        $record3 = $records[2];
+        $this->assertSame(12, $record3[3]);
+        $this->assertSame('This is my other text', $record3[6]);
+        $this->assertSame(20, $record3[7]);
+        $this->assertSame('2019-12-20T08:00:00.000Z', $record3[8]);
     }
 
     public function testDeleteRecords(): void
