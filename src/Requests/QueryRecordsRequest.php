@@ -7,7 +7,6 @@ namespace Gtlogistics\QuickbaseClient\Requests;
 
 use Gtlogistics\QuickbaseClient\Query;
 use Webmozart\Assert\Assert;
-use function _PHPStan_39fe102d2\RingCentral\Psr7\str;
 
 final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSerializable
 {
@@ -144,6 +143,11 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
         $clone->data['options']['top'] = $count;
 
         return $clone;
+    }
+
+    public function getPaginationType(): string
+    {
+        return self::PAGINATION_IN_PAYLOAD;
     }
 
     #[\ReturnTypeWillChange]

@@ -12,6 +12,7 @@ use Gtlogistics\QuickbaseClient\Requests\DeleteRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\PaginableRequestInterface;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
+use Gtlogistics\QuickbaseClient\Requests\RunReportRequest;
 use Gtlogistics\QuickbaseClient\Requests\UpsertRecordsRequest;
 use Gtlogistics\QuickbaseClient\Responses\DeletedRecordsResponse;
 use Gtlogistics\QuickbaseClient\Responses\PaginatedRecordsResponse;
@@ -22,11 +23,13 @@ use Http\Client\Common\Plugin\AuthenticationPlugin;
 use Http\Client\Common\Plugin\BaseUriPlugin;
 use Http\Client\Common\Plugin\HeaderSetPlugin;
 use Http\Client\Common\PluginClient;
+use JsonSerializable;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface as HttpRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\UriFactoryInterface;
+use Webmozart\Assert\Assert;
 
 final class QuickbaseClient
 {
@@ -104,7 +107,18 @@ final class QuickbaseClient
         return $this->doRequest($httpRequest, DeletedRecordsResponse::class)->getNumberDeleted();
     }
 
-    private function makeRequest(string $method, string $uri, \JsonSerializable $payload = null): HttpRequestInterface
+    public function runReport(RunReportRequest $request): iterable
+    {
+        $httpRequest = $this->makeRequest('POST', "/v1/reports/{$request->getReportId()}/run?" . http_build_query([
+            'tableId' => $request->getTableId(),
+            'top' => $request->getTop(),
+            'skip' => $request->getSkip(),
+        ]));
+
+        return $this->paginatedRecordsResponse($httpRequest, $request);
+    }
+
+    private function makeRequest(string $method, string $uri, JsonSerializable $payload = null): HttpRequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $uri);
 
@@ -171,7 +185,16 @@ final class QuickbaseClient
                 break;
             }
 
-            $httpRequest = RequestUtils::withPayload($httpRequest, $this->streamFactory, $request->withSkip($response->getNext()));
+            $paginationType = $request->getPaginationType();
+            if ($paginationType === PaginableRequestInterface::PAGINATION_IN_PAYLOAD) {
+                Assert::isInstanceOf($request, JsonSerializable::class);
+
+                $httpRequest = RequestUtils::withPayload($httpRequest, $this->streamFactory, $request->withSkip($response->getNext()));
+            } elseif ($paginationType === PaginableRequestInterface::PAGINATION_IN_QUERY) {
+                $httpRequest = RequestUtils::withQuery($httpRequest, ['skip' => $response->getNext()]);
+            } else {
+                throw new \RuntimeException(sprintf('Unexpected pagination type %s', $paginationType));
+            }
         }
     }
 }

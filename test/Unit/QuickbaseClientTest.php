@@ -12,6 +12,7 @@ use Gtlogistics\QuickbaseClient\QuickbaseClient;
 use Gtlogistics\QuickbaseClient\Requests\DeleteRecordsRequest;
 use Gtlogistics\QuickbaseClient\Requests\FindRecordRequest;
 use Gtlogistics\QuickbaseClient\Requests\QueryRecordsRequest;
+use Gtlogistics\QuickbaseClient\Requests\RunReportRequest;
 use Gtlogistics\QuickbaseClient\Requests\UpsertRecordsRequest;
 use Gtlogistics\QuickbaseClient\Test\ApiTestCase;
 use Gtlogistics\QuickbaseClient\Test\Utils\IterableUtils;
@@ -172,6 +173,47 @@ class QuickbaseClientTest extends ApiTestCase
 
         $numberDeleted = $client->deleteRecords(new DeleteRecordsRequest('abcdefghi', (new Query())->contains(6, 'test')));
         $this->assertEquals(5, $numberDeleted);
+    }
+
+    public function testRunEmptyReport(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('run-report/empty.json')),
+        ]);
+
+        $records = IterableUtils::toArray($client->runReport(
+            new RunReportRequest('10', 'abcdefghi')
+        ));
+        $this->assertCount(0, $records);
+    }
+
+    public function testRunReport(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('run-report/page-1.json')),
+            new MockResponse($this->loadFixture('run-report/page-2.json')),
+            new MockResponse($this->loadFixture('run-report/page-3.json')),
+        ]);
+
+        $records = IterableUtils::toArray($client->runReport(
+            new RunReportRequest('10', 'abcdefghi')
+        ));
+        $this->assertCount(3, $records);
+
+        $record1 = $records[0];
+        $this->assertSame('John Doe', $record1[6]);
+        $this->assertSame(10, $record1[7]);
+        $this->assertSame('2019-12-18T08:00:00+00:00', $record1[8]->format(\DateTimeInterface::ATOM));
+
+        $record2 = $records[1];
+        $this->assertSame('Jane Doe', $record2[6]);
+        $this->assertSame(5, $record2[7]);
+        $this->assertSame('2019-12-18T09:00:00+00:00', $record2[8]->format(\DateTimeInterface::ATOM));
+
+        $record3 = $records[2];
+        $this->assertSame('Andre Harris', $record3[6]);
+        $this->assertSame(7, $record3[7]);
+        $this->assertSame('2019-12-18T10:00:00+00:00', $record3[8]->format(\DateTimeInterface::ATOM));
     }
 
     /**

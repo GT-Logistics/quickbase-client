@@ -24,4 +24,15 @@ final class RequestUtils
 
         return $request->withBody($streamFactory->createStream());
     }
+
+    public static function withQuery(RequestInterface $request, array $query): RequestInterface
+    {
+        $url = $request->getUri();
+        parse_str($url->getQuery(), $oldQuery);
+
+        $query = array_merge($oldQuery, $query);
+        $url = $url->withQuery(http_build_query($query));
+
+        return $request->withUri($url);
+    }
 }
