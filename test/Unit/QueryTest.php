@@ -19,6 +19,36 @@ final class QueryTest extends TestCase
     }
 
     /**
+     * @testWith ["CT", "{'1'.CT.'test'}"]
+     *           ["XCT", "{'1'.XCT.'test'}"]
+     *           ["HAS", "{'1'.HAS.'test'}"]
+     *           ["XHAS", "{'1'.XHAS.'test'}"]
+     *           ["EX", "{'1'.EX.'test'}"]
+     *           ["XEX", "{'1'.XEX.'test'}"]
+     *           ["TV", "{'1'.TV.'test'}"]
+     *           ["XTV", "{'1'.XTV.'test'}"]
+     *           ["SW", "{'1'.SW.'test'}"]
+     *           ["XSW", "{'1'.XSW.'test'}"]
+     *           ["BF", "{'1'.BF.'test'}"]
+     *           ["OBF", "{'1'.OBF.'test'}"]
+     *           ["AF", "{'1'.AF.'test'}"]
+     *           ["OAF", "{'1'.OAF.'test'}"]
+     *           ["IR", "{'1'.IR.'test'}"]
+     *           ["XIR", "{'1'.XIR.'test'}"]
+     *           ["LT", "{'1'.LT.'test'}"]
+     *           ["LTE", "{'1'.LTE.'test'}"]
+     *           ["GT", "{'1'.GT.'test'}"]
+     *           ["GTE", "{'1'.GTE.'test'}"]
+     */
+    public function testWhere(string $operator, string $expected): void
+    {
+        $query = new Query();
+        $query = $query->where(1, $operator, 'test');
+
+        $this->assertSame($expected, (string) $query);
+    }
+
+    /**
      * @testWith ["contains", "{'1'.CT.'test'}"]
      *           ["notContains", "{'1'.XCT.'test'}"]
      *           ["has", "{'1'.HAS.'test'}"]
@@ -64,7 +94,7 @@ final class QueryTest extends TestCase
 
     public function testWrongFieldId(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(\TypeError::class);
 
         $query = new Query();
         $query->contains(null, 'test');

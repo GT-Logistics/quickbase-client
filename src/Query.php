@@ -6,7 +6,8 @@
 namespace Gtlogistics\QuickbaseClient;
 
 use Webmozart\Assert\Assert;
-use function _PHPStan_39fe102d2\RingCentral\Psr7\str;
+
+use function Safe\sprintf;
 
 /**
  * @method self contains(int $fieldId, string|int|float|bool|null $value, string $boolean='AND')
@@ -78,6 +79,32 @@ final class Query
     private array $conditions = [];
 
     /**
+     * @param string|int|float|bool|null $value
+     */
+    public function where(int $fieldId, string $operator, $value, string $boolean = 'AND'): self
+    {
+        $boolean = strtoupper($boolean);
+
+        Assert::positiveInteger($fieldId);
+        Assert::inArray($boolean, ['AND', 'OR']);
+
+        if ($value !== null) {
+            Assert::scalar($value);
+        }
+
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        } elseif ($value === null) {
+            $value = '';
+        }
+
+        $clone = clone $this;
+        $clone->conditions[] = ['fieldId' => $fieldId, 'operator' => $operator, 'value' => $value, 'boolean' => $boolean];
+
+        return $clone;
+    }
+
+    /**
      * @return array<string, string>
      */
     private function getOperators(): array
@@ -96,35 +123,23 @@ final class Query
      */
     public function __call(string $name, array $arguments): self
     {
+        if (($count = count($arguments)) < 2) {
+            throw new \ArgumentCountError(sprintf('Too few arguments to function %s->%s(), %d passed', __CLASS__, $name, $count));
+        }
+
+        [$fieldId, $value] = $arguments;
         $boolean = $arguments[2] ?? 'AND';
+
         if (str_starts_with($name, 'or')) {
             $boolean = 'OR';
             $name = lcfirst(str_replace('or', '', $name));
         }
-        Assert::inArray($boolean, ['AND', 'OR']);
 
         $operators = $this->getOperators();
         Assert::inArray($name, array_keys($operators));
         $operator = $operators[$name];
 
-        $fieldId = $arguments[0] ?? null;
-        Assert::positiveInteger($fieldId);
-
-        $value = $arguments[1] ?? null;
-        if ($value !== null) {
-            Assert::scalar($value);
-        }
-
-        if (is_bool($value)) {
-            $value = $value ? '1' : '0';
-        } elseif ($value === null) {
-            $value = '';
-        }
-
-        $clone = clone $this;
-        $clone->conditions[] = ['fieldId' => $fieldId, 'operator' => $operator, 'value' => $value, 'boolean' => $boolean];
-
-        return $clone;
+        return $this->where($fieldId, $operator, $value, $boolean);
     }
 
     public function __toString(): string
