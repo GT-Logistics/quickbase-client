@@ -28,7 +28,11 @@ final class QuickbaseUtils
             return null;
         }
         if ($type === 'timestamp') {
-            return new \DateTimeImmutable($value);
+            return \DateTimeImmutable::createFromFormat(DATE_ATOM, $value)
+                // Because Quickbase return the Z (Zulu) timezone, and that timezone
+                // is not equivalent to the UTC timezone in the Intl ICU data, we
+                // assigned manually the UTC to the date returned.
+                ->setTimezone(new \DateTimeZone('UTC'));
         }
         if ($type === 'date') {
             return new Date($value);
@@ -63,7 +67,7 @@ final class QuickbaseUtils
             return $value->format('H:i:s');
         }
         if ($value instanceof \DateTimeInterface) {
-            return $value->format('Y-m-d H:i:s');
+            return $value->format(DATE_ATOM);
         }
         if ($value instanceof \DateInterval) {
             return self::serializeDateInterval($value);
