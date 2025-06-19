@@ -74,7 +74,7 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
     }
 
     /**
-     * @param non-empty-string|Query $where
+     * @param string|Query $where
      */
     public function withWhere($where): self
     {
@@ -82,9 +82,13 @@ final class QueryRecordsRequest implements PaginableRequestInterface, \JsonSeria
             $where = (string) $where;
         }
 
-        Assert::stringNotEmpty($where);
-
         $clone = clone $this;
+        if (trim($where) === '') {
+            unset($clone->data['where']);
+
+            return $clone;
+        }
+
         $clone->data['where'] = $where;
 
         return $clone;
