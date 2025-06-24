@@ -9,8 +9,6 @@ use Gtlogistics\QuickbaseClient\Models\Date;
 use Gtlogistics\QuickbaseClient\Models\Time;
 use Gtlogistics\QuickbaseClient\Models\User;
 
-use function Safe\sprintf;
-
 /**
  * @internal
  */
