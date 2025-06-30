@@ -74,8 +74,12 @@ final class QuickbaseUtils
         return $value;
     }
 
-    private static function parseUser(array $value): User
+    private static function parseUser(?array $value): ?User
     {
+        if ($value === null) {
+            return null;
+        }
+
         return new User(
             $value['id'] ?? null,
             $value['email'] ?? null,
