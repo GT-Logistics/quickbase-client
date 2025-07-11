@@ -14,7 +14,6 @@ final class PaginatedRecordsResponse extends RecordsResponse
 {
     /**
      * @var array{
-     *     data: array<positive-int, array{value: mixed}>[],
      *     fields: array{id: positive-int, label: non-empty-string, type: 'text'|'numeric'|'timestamp'|'date'|'timeofday'}[],
      *     metadata: array{
      *         totalRecords: non-negative-int,
@@ -24,25 +23,28 @@ final class PaginatedRecordsResponse extends RecordsResponse
      *     },
      * }
      */
-    protected array $data;
+    protected array $metadata;
 
     /**
-     * @return array<positive-int, mixed>[]
+     * @return iterable<array<non-empty-string|positive-int, mixed>>
      */
-    public function getData(): array
+    public function getData(): iterable
     {
-        $fields = $this->data['fields'];
+        $fields = $this->metadata['fields'];
 
-        return array_map(static function (array $record) use ($fields) {
+        foreach (parent::getData() as $record) {
             $parsedData = [];
 
             foreach ($record as $key => $value) {
                 $field = $fields[array_search($key, array_column($fields, 'id'), true)];
-                $parsedData[$key] = QuickbaseUtils::parseField($value, $field['type']);
+                $value = QuickbaseUtils::parseField($value, $field['type']);
+
+                $parsedData[$key] = $value;
+                $parsedData[$field['label']] = $value;
             }
 
-            return $parsedData;
-        }, parent::getData());
+            yield $parsedData;
+        }
     }
 
     /**
@@ -50,7 +52,7 @@ final class PaginatedRecordsResponse extends RecordsResponse
      */
     public function getTotalRecords(): int
     {
-        return $this->data['metadata']['totalRecords'];
+        return $this->metadata['metadata']['totalRecords'];
     }
 
     /**
@@ -58,7 +60,7 @@ final class PaginatedRecordsResponse extends RecordsResponse
      */
     public function getNumRecords(): int
     {
-        return $this->data['metadata']['numRecords'];
+        return $this->metadata['metadata']['numRecords'];
     }
 
     /**
@@ -66,7 +68,7 @@ final class PaginatedRecordsResponse extends RecordsResponse
      */
     public function getNumFields(): int
     {
-        return $this->data['metadata']['numFields'];
+        return $this->metadata['metadata']['numFields'];
     }
 
     /**
@@ -74,7 +76,7 @@ final class PaginatedRecordsResponse extends RecordsResponse
      */
     public function getSkip(): int
     {
-        return $this->data['metadata']['skip'];
+        return $this->metadata['metadata']['skip'];
     }
 
     /**
@@ -88,5 +90,10 @@ final class PaginatedRecordsResponse extends RecordsResponse
     public function hasNext(): bool
     {
         return $this->getTotalRecords() > $this->getNext();
+    }
+
+    protected static function getPointers(): array
+    {
+        return ['/fields', '/metadata'];
     }
 }

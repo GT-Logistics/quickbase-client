@@ -63,7 +63,7 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return iterable<array<positive-int, mixed>
+     * @return iterable<array<non-empty-string|positive-int, mixed>>
      */
     public function upsertRecords(UpsertRecordsRequest $request): iterable
     {
@@ -75,7 +75,7 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return iterable<array<positive-int, mixed>>
+     * @return iterable<array<non-empty-string|positive-int, mixed>>
      */
     public function queryRecords(QueryRecordsRequest $request): iterable
     {
@@ -87,10 +87,10 @@ final class QuickbaseClient
     /**
      * @api
      *
-     * @return array<positive-int, mixed>|null
+     * @return array<non-empty-string|positive-int, mixed>|null
      * @throws MultipleRecordsFoundException
      */
-    public function findRecord(FindRecordRequest $request): ?iterable
+    public function findRecord(FindRecordRequest $request): ?array
     {
         $httpRequest = $this->makeRequest('POST', '/v1/records/query', $request);
 
@@ -107,6 +107,9 @@ final class QuickbaseClient
         return $this->doRequest($httpRequest, DeletedRecordsResponse::class)->getNumberDeleted();
     }
 
+    /**
+     * @return iterable<array<non-empty-string|positive-int, mixed>>
+     */
     public function runReport(RunReportRequest $request): iterable
     {
         $httpRequest = $this->makeRequest('POST', "/v1/reports/{$request->getReportId()}/run?" . http_build_query([
@@ -142,7 +145,7 @@ final class QuickbaseClient
     }
 
     /**
-     * @return iterable<array<positive-int, array{value: mixed}>>
+     * @return iterable<array<non-empty-string|positive-int, mixed>>
      */
     private function recordsResponse(HttpRequestInterface $httpRequest): iterable
     {
@@ -150,7 +153,7 @@ final class QuickbaseClient
     }
 
     /**
-     * @return array<positive-int, array{value: mixed}>
+     * @return array<positive-int, mixed>|null
      *
      * @throws MultipleRecordsFoundException
      */
@@ -170,7 +173,7 @@ final class QuickbaseClient
     }
 
     /**
-     * @return iterable<array<positive-int, array{value: mixed}>>
+     * @return iterable<array<non-empty-string|positive-int, mixed>>
      */
     private function paginatedRecordsResponse(HttpRequestInterface $httpRequest, PaginableRequestInterface $request): iterable
     {

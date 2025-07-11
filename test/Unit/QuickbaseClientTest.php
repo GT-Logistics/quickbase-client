@@ -84,6 +84,20 @@ class QuickbaseClientTest extends ApiTestCase
         $this->assertSame('2019-12-18T10:00:00+00:00', $record3[8]->format(\DateTimeInterface::ATOM));
     }
 
+    public function testBigQueryRecords(): void
+    {
+        $client = $this->mockQuickbaseClient([
+            new MockResponse($this->loadFixture('query-records/50-mb.json')),
+        ]);
+
+        $records = IterableUtils::toArray($client->queryRecords(
+            (new QueryRecordsRequest('abcdefghi'))
+                ->withSelect([6, 7, 8])
+                ->withWhere((new Query())->range(8, 'today'))
+        ));
+        $this->assertCount(315_835, $records);
+    }
+
     public function testFindEmptyRecord(): void
     {
         $client = $this->mockQuickbaseClient([
